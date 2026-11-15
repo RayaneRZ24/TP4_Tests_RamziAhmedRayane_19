@@ -24,7 +24,9 @@ import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import dev.langchain4j.web.search.WebSearchEngine;
 import dev.langchain4j.web.search.tavily.TavilyWebSearchEngine;
-
+import dev.langchain4j.rag.query.router.LanguageModelQueryRouter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.time.Duration;
 import java.util.List;
 import java.util.Scanner;
@@ -63,10 +65,20 @@ public class TestRechercheWeb {
         ContentRetriever retrieverWeb = WebSearchContentRetriever.builder()
                 .webSearchEngine(moteurWeb)
                 .build();
+// QueryRouter queryRouter = new DefaultQueryRouter(
+//         contentRetriever, retrieverWeb);
+        Map<ContentRetriever, String> sources = new LinkedHashMap<>();
 
-        QueryRouter queryRouter = new DefaultQueryRouter(
-                contentRetriever, retrieverWeb);
+        sources.put(contentRetriever,
+                "Support de cours sur les modèles de langage, "
+                        + "le fine-tuning et les mécanismes du RAG. "
+                        + "Ne contient pas d'actualités.");
 
+        sources.put(retrieverWeb,
+                "Recherche sur le Web pour les événements récents, "
+                        + "les actualités et les questions sans rapport avec le support.");
+
+        QueryRouter queryRouter = new LanguageModelQueryRouter(model, sources);
         RetrievalAugmentor retrievalAugmentor =
                 DefaultRetrievalAugmentor.builder()
                         .queryRouter(queryRouter)
